@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JEE Mock Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>JEE Mock Test</h1>
+
+        <!-- ⭐ TIMER ADDED -->
+        <h2 id="timer" style="color:red; font-weight:bold;">03:00:00</h2>
+
+        <div id="question-container">
+            <p id="question">Loading...</p>
+            <div id="options"></div>
+
+            <button id="submit-btn" style="margin-top:15px;">Submit Answer</button>
+        </div>
+
+        <div class="btn-container">
+            <button id="prev-btn">Previous</button>
+            <button id="next-btn" disabled>Next</button>
+        </div>
+
+        <p id="score"></p>
+    </div>
+
+    <script>
+        const questionElement = document.getElementById('question');
+        const optionsContainer = document.getElementById('options');
+        const nextButton = document.getElementById('next-btn');
+        const prevButton = document.getElementById('prev-btn');
+        const submitButton = document.getElementById('submit-btn');
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+
+        let questions = [];
+        let index = 0;
+        let userAnswers = {};
+        let selectedOption = null;
+        let timeLeft = 10800;   // ⭐ 3 hours = 3 × 60 × 60 = 10800 seconds
+
+        async function loadQuestions() {
+            const res = await fetch("http://localhost:5000/questions");
+            questions = await res.json();
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[index];
+            selectedOption = null;
+            nextButton.disabled = true;
+
+            questionElement.textContent = q.question;
+            optionsContainer.innerHTML = "";
+
+            const options = [q.optionA, q.optionB, q.optionC, q.optionD];
+            const keys = ["A", "B", "C", "D"];
+
+            options.forEach((opt, i) => {
+                const btn = document.createElement("button");
+                btn.textContent = opt;
+                btn.style.display = "block";
+                btn.style.margin = "6px 0";
+
+                if (userAnswers[index] === keys[i]) {
+                    btn.style.background = "#bde0fe";
+                }
+
+                btn.onclick = () => {
+                    selectedOption = keys[i];
+
+                    const all = optionsContainer.querySelectorAll("button");
+                    all.forEach(b => b.style.background = "");
+
+                    btn.style.background = "#bde0fe";
+                };
+
+                optionsContainer.appendChild(btn);
+            });
+
+            submitButton.style.display = "inline-block";
+            prevButton.style.display = index === 0 ? "none" : "inline-block";
+
+            nextButton.textContent =
+                index === questions.length - 1 ? "Finish" : "Next";
+        }
+
+        submitButton.onclick = () => {
+            if (!selectedOption) {
+                alert("Please select an answer before submitting.");
+                return;
+            }
+
+            userAnswers[index] = selectedOption;
+            nextButton.disabled = false;
+
+            const buttons = optionsContainer.querySelectorAll("button");
+            buttons.forEach(btn => btn.disabled = true);
+
+            submitButton.style.display = "none";
+        };
+
+        nextButton.onclick = () => {
+            if (index < questions.length - 1) {
+                index++;
+                showQuestion();
+            } else {
+                calculateScore();
+            }
+        };
+
+        prevButton.onclick = () => {
+            if (index > 0) {
+                index--;
+                showQuestion();
+            }
+        };
+
+        function calculateScore() {
+            let score = 0;
+
+            questions.forEach((q, idx) => {
+                if (userAnswers[idx] === q.correctAnswer) {
+                    score += 4;
+                } else if (userAnswers[idx]) {
+                    score -= 1;
+                }
+            });
+
+            document.getElementById("question-container").style.display = "none";
+            nextButton.style.display = "none";
+            prevButton.style.display = "none";
+            submitButton.style.display = "none";
+
+            scoreElement.innerHTML = `Your Score: <b>${score}</b>`;
+        }
+
+        // ⭐ TIMER FUNCTION
+        function startTimer() {
+            const timer = setInterval(() => {
+
+                let hrs = Math.floor(timeLeft / 3600);
+                let mins = Math.floor((timeLeft % 3600) / 60);
+                let secs = timeLeft % 60;
+
+                timerElement.textContent =
+                    `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                timeLeft--;
+
+                if (timeLeft < 0) {
+                    clearInterval(timer);
+                    alert("Time is over! Test submitted automatically.");
+                    calculateScore();
+                }
+
+            }, 1000);
+        }
+
+        loadQuestions();
+        startTimer();  // ⭐ Start countdown
+        function calculateScore() {
+    let score = 0;
+    let correct = 0;
+    let wrong = 0;
+    let unattempted = 0;
+
+    questions.forEach((q, idx) => {
+        if (!userAnswers[idx]) {
+            unattempted++;
+        }
+        else if (userAnswers[idx] === q.correctAnswer) {
+            score += 4;
+            correct++;
+        }
+        else {
+            score -= 1;
+            wrong++;
+        }
+    });
+
+    // ⭐ Save data for next page
+    const resultData = {
+        score,
+        correct,
+        wrong,
+        unattempted
+    };
+    localStorage.setItem("resultData", JSON.stringify(resultData));
+
+    // ⭐ Go to result.html
+    window.location.href = "result.html";
+}
+
+    </script>
+</body>
+</html>
+
+
+
+

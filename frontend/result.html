@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Result</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Your JEE Result</h1>
+
+        <div id="result-box">
+            <p id="score"></p>
+            <p id="correct"></p>
+            <p id="wrong"></p>
+            <p id="unattempted"></p>
+            <h2 id="rank"></h2>
+        </div>
+    </div>
+
+    <script>
+        // read data coming from test page
+        const data = JSON.parse(localStorage.getItem("resultData"));
+
+        document.getElementById("score").innerHTML = `Total Score: <b>${data.score}</b>`;
+        document.getElementById("correct").innerHTML = `Correct Answers: <b>${data.correct}</b>`;
+        document.getElementById("wrong").innerHTML = `Wrong Answers: <b>${data.wrong}</b>`;
+        document.getElementById("unattempted").innerHTML = `Unattempted: <b>${data.unattempted}</b>`;
+
+        async function getRank() {
+            const response = await fetch("http://localhost:5000/save-result", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ score: data.score })
+            });
+
+            const result = await response.json();
+
+            document.getElementById("rank").innerHTML = 
+                `Your Rank: <b>${result.rank}</b> out of <b>${result.total}</b> students`;
+        }
+
+        getRank();
+    </script>
+
+</body>
+</html>
