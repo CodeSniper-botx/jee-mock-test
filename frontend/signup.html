@@ -19,7 +19,6 @@
 
     <p>Already have an account? <a href="login.html">Login</a></p>
 </div>
-
 <script>
 document.getElementById("signupForm").addEventListener("submit", async function (e) {
     e.preventDefault();
@@ -40,8 +39,10 @@ document.getElementById("signupForm").addEventListener("submit", async function 
         const data = await response.json();
         alert(data.message);
 
+        // Agar signup successful hua
         if (response.ok) {
-            window.location.href = "login.html";
+            // Direct dashboard par bhej do
+            window.location.href = "dashboard.html";
         }
 
     } catch (error) {
@@ -50,6 +51,7 @@ document.getElementById("signupForm").addEventListener("submit", async function 
     }
 });
 </script>
+
 
 </body>
 </html>

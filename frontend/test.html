@@ -45,6 +45,7 @@
 
         async function loadQuestions() {
             const res = await fetch("http://localhost:5000/questions");
+;
             questions = await res.json();
             showQuestion();
         }
